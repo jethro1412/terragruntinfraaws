@@ -1,23 +1,10 @@
-include "env" {
-  path   = find_in_parent_folders("env.hcl")
-  expose = true
+include {
+  path = find_in_parent_folders()
 }
 
-include "stage" {
-  path   = find_in_parent_folders("stage.hcl")
-  expose = true
-}
-
-locals {
-  local_tags = {
-    "Name" = "eks-cluster"
-  }
-
-  tags = merge( include.stage.locals.tags, local.local_tags)
-}
 
 dependency "vpc" {
-  config_path                             = "${get_parent_terragrunt_dir("stage")}/vpc_subnet_module"
+  config_path                             = "../vpc"
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan"]
   mock_outputs = {
     vpc_id                  = "some_id"
@@ -26,33 +13,11 @@ dependency "vpc" {
   }
 }
 
-generate "provider_global" {
-  path      = "provider.tf"
-  if_exists = "overwrite"
-  contents  = <<EOF
-terraform {
-  backend "s3" {}
-  required_version = "${include.env.locals.version_terraform}"
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      version = "${include.env.locals.version_provider_aws}"
-    }
-  }
-}
-
-provider "aws" {
-  region = "${include.env.locals.region}"
-}
-EOF
-}
-
 inputs = {
   aws_kms_key = {
     description             = "AWS EKS KMS Encryption Key"
     deletion_window_in_days = 7
     enable_key_rotation     = true
-    tags                    = local.tags
   }
 
   aws_security_group = {
@@ -66,11 +31,6 @@ inputs = {
         "10.10.96.0/20"
       ]
     }]
-    tags = local.tags
-  }
-
-  terraform = {
-    source = "../terraform-helper/aws_eks_cluster"
   }
 
 
@@ -152,12 +112,14 @@ inputs = {
         ]
       }
     }
-    tags = local.tags
   }
   vpc_cni_irsa = {
     role_name_prefix      = "irsa-vpc-cni"
     attach_vpc_cni_policy = true
     vpc_cni_enable_ipv4   = true
-    tags                  = local.tags
   }
 }
+
+terraform  {
+    source = "../../terraform-helper/aws_eks_cluster"
+  }

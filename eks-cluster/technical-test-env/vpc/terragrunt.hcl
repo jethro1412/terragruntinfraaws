@@ -27,6 +27,7 @@ inputs = {
   vpc_subnet_module = {
     name                 = "eks-vpc-techtest"
     version              = "~>3.19.0"
+    azs                  = ["us-east-2a","us-east-2b"]
     cidr_block           = "10.10.96.0/20"
     private_subnets      = ["10.10.96.0/22", "10.10.100.0/22"]
     public_subnets       = ["10.10.104.0/22", "10.10.108.0/22"]

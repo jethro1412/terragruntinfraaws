@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "registry.terraform.io/hashicorp/aws"
+      version = "~> 4.17.0, <= 5.0.0"
+    }
+  }
+}
+
 # Helper for creating AWS KMS 
 resource "aws_kms_key" "eks" {
   description             = var.aws_kms_key.description
